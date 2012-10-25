@@ -11,6 +11,16 @@ class Body  {
   IntVector userList;
   PVector head;
   PVector torso;
+  PVector left_shoulder;
+  PVector right_shoulder;
+  PVector left_hand;
+  PVector right_hand;
+  PVector left_thigh;
+  PVector right_thigh;
+  PVector left_foot;
+  PVector right_foot;
+
+
   
   // This constructor could be improved to allow a greater variety of pendulums
 Body() {
@@ -92,7 +102,33 @@ Body() {
         torso = new PVector();
         kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_TORSO, torso);
         kinect.convertRealWorldToProjective(torso, convertedTorso);
+        
+         // Left shoulder
+        PVector left_shoulder_raw = new PVector();
+        kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_TORSO, left_shoulder_raw);
+        kinect.convertRealWorldToProjective(left_shoulder_raw, left_shoulder);       
+        left_shoulder.mult(2);
   
+        // Right shoulder
+        PVector right_shoulder_raw = new PVector();
+        kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_TORSO, right_shoulder_raw);
+        kinect.convertRealWorldToProjective(right_shoulder_raw, right_shoulder);       
+        right_shoulder.mult(2);      
+ 
+         // Left hand
+        PVector left_hand_raw = new PVector();
+        kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_TORSO, left_hand_raw);
+        kinect.convertRealWorldToProjective(left_hand_raw, left_hand);       
+        left_hand.mult(2);       
+        
+          // Right shoulder
+        PVector right_hand_raw = new PVector();
+        kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_TORSO, right_hand_raw);
+        kinect.convertRealWorldToProjective(right_hand_raw, right_hand);       
+        right_hand.mult(2);
+        
+        
+        
         dataValid = true;
         
         // Scale coordinates to screen

@@ -23,13 +23,16 @@ PImage key_blur;
 PShape s;
 
 // Mode 3 info
-PShape astronaut;
 PShape astro_head;
 PShape astro_torso;
 PShape astro_left_shoulder;
-PShape astro_left_arm;
 PShape astro_right_shoulder;
-PShape astro_right_arm;
+PShape astro_left_hand;
+PShape astro_right_hand;
+PShape astro_left_thigh;
+PShape astro_right_thigh;
+PShape astro_left_foot;
+PShape astro_right_foot;
 
 
 // * SETUP *
@@ -43,7 +46,6 @@ boolean kinect_enabled;
 
 PShape on_button;
 PShape off_button;
-PShape sine_wave;
 int sine_phase=0;
 
 PFont font;
@@ -125,13 +127,18 @@ void setup() {
   s = loadShape("keycontrols.svg");
   key_blur = loadImage("blurred-keycontrols.png");
 
-  astronaut = loadShape("astro.svg");
-  astro_head = astronaut.getChild("head");
-  astro_torso = astronaut.getChild("torso");
-  astro_left_shoulder = astronaut.getChild("left_shoulder");
-  astro_left_arm = astronaut.getChild("left_arm");
-  astro_right_shoulder = astronaut.getChild("right_shoulder");
-  astro_right_arm = astronaut.getChild("right_arm");
+  astro_head = loadShape("head.svg");
+  astro_torso = loadShape("head.svg");
+  astro_left_shoulder = loadShape("leftshoulder.svg");
+  astro_left_hand = loadShape("lefthand.svg");
+  astro_right_hand = loadShape("righthand.svg");
+  astro_right_shoulder = loadShape("rightshoulder.svg");
+  astro_right_hand = loadShape("righthand.svg");
+  astro_left_thigh = loadShape("leftthigh.svg");
+  astro_right_thigh = loadShape("rightthigh.svg");
+  astro_left_foot = loadShape("leftfoot.svg");
+  astro_right_foot = loadShape("rightfoot.svg");
+
   
   
   // Stuff for Mode 3 (pendulum)
@@ -411,14 +418,26 @@ void draw_mode3() {
   
      // Skeleton control
   if (kinect_enabled && (body.userList.size() > 0) && kinect.isTrackingSkeleton(body.userId)){   
-      image(body.depth, 0,0,1280,960); 
+     image(body.depth, 0,0,1280,960); 
        
-      shapeMode(CENTER);
+     shapeMode(CENTER);
      
-     shape(astro_head, body.head.x-200, body.head.y+200);
+     shape(astro_head, body.head.x, body.head.y);
      
-     shape(astro_torso, body.torso.x-200, body.torso.y);
+     shape(astro_torso, body.torso.x, body.torso.y);
      
+     shape(astro_left_shoulder, body.left_shoulder.x, body.left_shoulder.y);
+     
+     shape(astro_right_shoulder, body.right_shoulder.x, body.right_shoulder.y);
+     
+     shape(astro_right_thigh, body.right_thigh.x, body.right_thigh.y);
+     
+     shape(astro_left_thigh, body.left_thigh.x, body.left_thigh.y);
+
+     shape(astro_right_foot, body.right_foot.x, body.right_foot.y);
+     
+     shape(astro_left_foot, body.left_foot.x, body.left_foot.y);
+
      println( body.head.x + " " + body.head.y);
   }
         
