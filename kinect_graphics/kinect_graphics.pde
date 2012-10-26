@@ -6,17 +6,6 @@ import rwmidi.*;
 MidiOutput output;
 
 
-// variables for note generation from keystrike
-// variables for note generation from keystrike
-int aChannel,  sChannel,  dChannel,  fChannel;
-int aNote,     sNote,     dNote,     fNote;
-int aVelocity, sVelocity, dVelocity, fVelocity;
-int aSuccess,  sSuccess,  dSuccess,  fSuccess;
-
-boolean isClapping = false;
-boolean wasClapping = false;
-boolean beatOn = false;
-boolean wasInEffectBox = false;
 
 // Mode 2 info
 PImage key_blur;
@@ -59,14 +48,27 @@ int sine_phase=0;
 PFont font;
 
 // Effect button
+PShape effect_button1;
+PShape effect_button2;
 float effect_button_size;
 float mode_button_size;
 int time_entered_mode_button;
+int time_entered_effect1_button;
+boolean wasInEffect1Button;
+boolean isInEffect1Button;
+boolean effect1_switched;
+int time_entered_effect2_button;
+boolean wasInEffect2Button;
+boolean isInEffect2Button;
+boolean effect2_switched;
 int mode = 0;
 int number_of_modes = 3;
 boolean isInModeButton = false;
 boolean wasInModeButton = false;
 boolean mode_switched = false;
+
+
+
 
 // Pendulum set up
 Pendulum p;
@@ -131,6 +133,9 @@ void setup() {
   effect_button_size = on_button.width*effect_button_scale;
   mode_button_size = on_button.width*mode_button_scale;
 
+  effect_button1 = off_button;
+  effect_button2 = off_button;
+
   // Stuff for MODE 2
   s = loadShape("keycontrols.svg");
   key_blur = loadImage("blurred-keycontrols.png");
@@ -149,7 +154,7 @@ void setup() {
   
   
   // Stuff for Mode 3 (pendulum)
-  p = new Pendulum(new PVector(width/2, 0), pend_arm); // Make a new Pendulum with an origin location and armlength
+  //p = new Pendulum(new PVector(width/2, 0), pend_arm); // Make a new Pendulum with an origin location and armlength
   mode3_background = loadImage("earthrise.jpg");
   
   
@@ -159,6 +164,10 @@ void setup() {
   
   // Create new Body
   body = new Body();
+  
+  if (mode==0) {
+     output.sendNoteOn(0, 2, 1);
+  }
   
 }
 
@@ -171,11 +180,7 @@ void setup() {
 
 
 void draw() {
- 
 
-  
-  PShape effect_button1;
-  PShape effect_button2;
   PShape mode_button;
 
   // Get updated Kinect/simulated data
@@ -197,10 +202,9 @@ void draw() {
     break;
 
   case 2: 
-    // Pendulum
     draw_mode3();
-    p.go();
-    time++;
+    //p.go();
+    //time++;
     break;
   }
 
@@ -210,6 +214,7 @@ void draw() {
   // -----------------------------------
   
   // Handle Effect Button 1
+  /*
   if ( isInEffectButton1(body.rightHand.x, body.rightHand.y)) {
     effect_button1 = on_button;
   } else {
@@ -218,6 +223,8 @@ void draw() {
   // Draw on or off effect button 1:
   shape(effect_button1, window_size_x - effect_button_size - 60, window_size_y - effect_button_size - 10, effect_button_size, effect_button_size);
 
+  
+  
   // Handle Effect button 2
   if ( isInEffectButton2(body.rightHand.x, body.rightHand.y)) {
     effect_button2 = on_button;
@@ -225,8 +232,133 @@ void draw() {
     effect_button2 = off_button;
   }   
   // Draw on or off effect button 2:
-  shape(effect_button2, window_size_x - effect_button_size - 10, window_size_y - effect_button_size - 60, effect_button_size, effect_button_size);
+  shape(effect_button2, window_size_x - effect_button_size - 100, window_size_y - effect_button_size - 200, effect_button_size, effect_button_size);
+*/
 
+
+
+  // -----------------------------------
+  // Effect 1 button 
+  // -----------------------------------
+  if ( isInEffectButton1(body.rightHand.x, body.rightHand.y))
+  {
+    isInEffect1Button = true;
+  } 
+  else {
+    isInEffect1Button = false;
+  }
+
+
+  if (!wasInEffect1Button && isInEffect1Button)
+  {
+    // Start the timer -- must be in mode button for at least 0.5 seconds before switching modes
+    time_entered_effect1_button = millis();
+  } 
+  else if (isInEffect1Button && wasInEffect1Button && !effect1_switched)
+  {
+    // Have been sitting in mode button -- check to see if it is long enough to switch mode
+    // If so, switch modes and note switch
+    if ( (millis() - time_entered_effect1_button) > 200)
+    {
+ 
+       switch(mode) {
+         
+         case 0: // Mode 1
+           output.sendNoteOn(11, 1, 1);
+           break;
+           
+         case 1: // Mode 2
+           output.sendNoteOn(7, 1, 1);
+           break;
+           
+         case 2:  // Mode 3
+            output.sendNoteOn(15, 1, 1);
+            break;
+       }
+      println("Switched Mode 1");
+      effect1_switched = true;
+      
+      if (effect_button1 == off_button){
+        effect_button1 = on_button;
+      } else {
+        effect_button1 = off_button;
+      }
+      
+    }
+  } 
+  else if (wasInEffect1Button && !isInEffect1Button)
+  {
+    // Just exited mode button
+    effect1_switched = false;
+  }
+
+
+  wasInEffect1Button = isInEffect1Button;
+
+   // Draw on or off effect button 1:
+  shape(effect_button1, window_size_x - effect_button_size - 200, window_size_y - effect_button_size - 160, effect_button_size, effect_button_size);
+
+
+
+  // -----------------------------------
+  // Effect 2 button 
+  // -----------------------------------
+  if ( isInEffectButton2(body.rightHand.x, body.rightHand.y))
+  {
+    isInEffect2Button = true;
+  } 
+  else {
+    isInEffect2Button = false;
+  }
+   // Draw on or off effect button 1:
+   
+ 
+
+  if (!wasInEffect2Button && isInEffect2Button)
+  {
+    // Start the timer -- must be in mode button for at least 0.5 seconds before switching modes
+    time_entered_effect2_button = millis();
+  } 
+  else if (isInEffect2Button && wasInEffect2Button && !effect2_switched)
+  {
+    // Have been sitting in mode button -- check to see if it is long enough to switch mode
+    // If so, switch modes and note switch
+    if ( (millis() - time_entered_effect2_button) > 200) {
+ 
+       switch(mode) {
+         
+         case 0: // Mode 1
+           output.sendNoteOn(12, 1, 1);
+           break;
+           
+         case 1: // Mode 2
+           output.sendNoteOn(8, 1, 1);
+           break;
+           
+         case 2:  // Mode 3
+            output.sendNoteOn(15, 2, 1);
+            break;
+       }
+      println("Switched Mode 2");
+      effect2_switched = true;
+      
+      if (effect_button2 == off_button){
+        effect_button2 = on_button;
+      } else {
+        effect_button2 = off_button;
+      }
+      
+    }
+  } 
+  else if (wasInEffect2Button && !isInEffect2Button)
+  {
+    // Just exited mode button
+    effect2_switched = false;
+  }
+
+
+  wasInEffect2Button = isInEffect2Button;
+ shape(effect_button2, window_size_x - effect_button_size - 100, window_size_y - effect_button_size - 200, effect_button_size, effect_button_size);
 
 
 
@@ -264,6 +396,14 @@ void draw() {
       // Turn on any sounds
       output.sendNoteOn(0, 1, 1); 
       
+      // If entering mode 0, turn on sounds
+      if (mode==0)
+      {
+        output.sendNoteOn(0, 2, 1);
+      } else if (mode == 2) {
+         output.sendNoteOn(0, 3, 1); 
+      }
+      
       mode_switched = true;
     }
   } 
@@ -272,6 +412,9 @@ void draw() {
     // Just exited mode button
     mode_switched = false;
   }
+
+
+
 
   // Draw mode inside mode button (centered)
   textAlign(CENTER, CENTER); 
@@ -374,8 +517,8 @@ void draw_mode1() {
     int hands_dist = min(int(map(body.distance_between_hands(), 0, 1000, 0, 127)), 127); 
     output.sendController(9, 1, hands_dist);  
  
-   int hands_angle = min(int(map(max(angle,0), 0, 360, 0, 127)), 127); 
-    output.sendController(10, 1, hands_dist);   
+   int hands_angle = min(int(map(max(angle+90,0), 0, 360, 0, 127)), 127); 
+   output.sendController(10, 1, hands_dist);   
       
 
 }
@@ -669,31 +812,11 @@ void draw_mode3() {
        shape(astro_right_hand, 0, 0);
      popMatrix();
 
-  /*
-    strokeWeight(1);
-    stroke(255,0,0);
-    line(body.left_hand.x, body.left_hand.y, body.left_elbow.x, body.left_elbow.y);
-    line(body.left_elbow.x, body.left_elbow.y, body.left_shoulder.x, body.left_shoulder.y);
-    line(body.left_shoulder.x, body.left_shoulder.y, body.left_hip.x, body.left_hip.y);
-    line(body.left_hip.x, body.left_hip.y, body.left_knee.x, body.left_knee.y);
-    line(body.left_knee.x, body.left_knee.y, body.left_foot.x, body.left_foot.y);
+     int left_hand_height = min(int(map(max(0,body.left_hand.y), 0, 960, 0, 127)), 127); 
+     output.sendController(13, 1, left_hand_height);  
     
-    line(body.right_hand.x, body.right_hand.y, body.right_elbow.x, body.right_elbow.y);
-    line(body.right_elbow.x, body.right_elbow.y, body.right_shoulder.x, body.right_shoulder.y);
-    line(body.right_shoulder.x, body.right_shoulder.y, body.right_hip.x, body.right_hip.y);
-    line(body.right_hip.x, body.right_hip.y, body.right_knee.x, body.right_knee.y);
-    line(body.right_knee.x, body.right_knee.y, body.right_foot.x, body.right_foot.y);
-    
-    line(body.left_hip.x, body.left_hip.y, body.right_hip.x, body.right_hip.y);
-    line(body.left_shoulder.x, body.left_shoulder.y,body.right_shoulder.x, body.right_shoulder.y);
-    line(body.right_shoulder.x, body.right_shoulder.y, body.torso.x, body.torso.y);
-    line(body.left_shoulder.x, body.left_shoulder.y, body.torso.x, body.torso.y);
-    line(body.right_hip.x, body.right_hip.y, body.torso.x, body.torso.y);
-    line(body.left_hip.x, body.left_hip.y, body.torso.x, body.torso.y);
-    line(body.neck.x, body.neck.y, body.head.x, body.head.y);
-
-     //println( body.head.x + " " + body.head.y);
-     */
+     int right_hand_height = min(int(map(max(0,body.right_hand.y), 0, 960, 0, 127)), 127); 
+     output.sendController(14, 1, right_hand_height);        
   }
         
   }  
@@ -728,11 +851,11 @@ void keyPressed() {
 
 
 void mousePressed() {
-  p.clicked(mouseX, mouseY);
+ // p.clicked(mouseX, mouseY);
 }
 
 void mouseReleased() {
-  p.stopDragging();
+  //p.stopDragging();
 }
 
 
@@ -747,7 +870,7 @@ void mouseReleased() {
 boolean isInEffectButton1(float x, float y)
 {
   // Get distance from the center of the button
-  float distance = sqrt(pow(window_size_x - effect_button_size/2 - 60 - x, 2) + pow(window_size_y - effect_button_size/2 - 10 - y, 2));
+  float distance = sqrt(pow(window_size_x - effect_button_size/2 - 200 - x, 2) + pow(window_size_y - effect_button_size/2 - 160 - y, 2));
 
   if (distance < effect_button_size/2)
   {
@@ -763,7 +886,7 @@ boolean isInEffectButton1(float x, float y)
 boolean isInEffectButton2(float x, float y)
 {
   // Get distance from the center of the button
-  float distance = sqrt(pow(window_size_x - effect_button_size/2 - 10 - x, 2) + pow(window_size_y - effect_button_size/2 - 60 - y, 2));
+  float distance = sqrt(pow(window_size_x - effect_button_size/2 - 100 - x, 2) + pow(window_size_y - effect_button_size/2 - 200 - y, 2));
 
   if (distance < effect_button_size/2)
   {
