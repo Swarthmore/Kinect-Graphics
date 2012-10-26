@@ -128,11 +128,10 @@ void setup() {
   key_blur = loadImage("blurred-keycontrols.png");
 
   astro_head = loadShape("head.svg");
-  astro_torso = loadShape("head.svg");
+  astro_torso = loadShape("torso.svg");
   astro_left_shoulder = loadShape("leftshoulder.svg");
-  astro_left_hand = loadShape("lefthand.svg");
-  astro_right_hand = loadShape("righthand.svg");
   astro_right_shoulder = loadShape("rightshoulder.svg");
+  astro_left_hand = loadShape("lefthand.svg");
   astro_right_hand = loadShape("righthand.svg");
   astro_left_thigh = loadShape("leftthigh.svg");
   astro_right_thigh = loadShape("rightthigh.svg");
@@ -429,14 +428,40 @@ void draw_mode3() {
      shape(astro_left_shoulder, body.left_shoulder.x, body.left_shoulder.y);
      
      shape(astro_right_shoulder, body.right_shoulder.x, body.right_shoulder.y);
+   
+     shape(astro_left_hand, body.left_hand.x, body.left_hand.y);
      
-     shape(astro_right_thigh, body.right_thigh.x, body.right_thigh.y);
+     shape(astro_right_hand, body.right_hand.x, body.right_hand.y);   
      
-     shape(astro_left_thigh, body.left_thigh.x, body.left_thigh.y);
+     shape(astro_right_thigh, body.right_hip.x, body.right_hip.y);
+     
+     shape(astro_left_thigh, body.left_hip.x, body.left_hip.y);
 
      shape(astro_right_foot, body.right_foot.x, body.right_foot.y);
      
      shape(astro_left_foot, body.left_foot.x, body.left_foot.y);
+
+    strokeWeight(3);
+    stroke(255,0,0);
+    line(body.left_hand.x, body.left_hand.y, body.left_elbow.x, body.left_elbow.y);
+    line(body.left_elbow.x, body.left_elbow.y, body.left_shoulder.x, body.left_shoulder.y);
+    line(body.left_shoulder.x, body.left_shoulder.y, body.left_hip.x, body.left_hip.y);
+    line(body.left_hip.x, body.left_hip.y, body.left_knee.x, body.left_knee.y);
+    line(body.left_knee.x, body.left_knee.y, body.left_foot.x, body.left_foot.y);
+    
+    line(body.right_hand.x, body.right_hand.y, body.right_elbow.x, body.right_elbow.y);
+    line(body.right_elbow.x, body.right_elbow.y, body.right_shoulder.x, body.right_shoulder.y);
+    line(body.right_shoulder.x, body.right_shoulder.y, body.right_hip.x, body.right_hip.y);
+    line(body.right_hip.x, body.right_hip.y, body.right_knee.x, body.right_knee.y);
+    line(body.right_knee.x, body.right_knee.y, body.right_foot.x, body.right_foot.y);
+    
+    line(body.left_hip.x, body.left_hip.y, body.right_hip.x, body.right_hip.y);
+    line(body.left_shoulder.x, body.left_shoulder.y,body.right_shoulder.x, body.right_shoulder.y);
+    line(body.right_shoulder.x, body.right_shoulder.y, body.torso.x, body.torso.y);
+    line(body.left_shoulder.x, body.left_shoulder.y, body.torso.x, body.torso.y);
+    line(body.right_hip.x, body.right_hip.y, body.torso.x, body.torso.y);
+    line(body.left_hip.x, body.left_hip.y, body.torso.x, body.torso.y);
+    line(body.neck.x, body.neck.y, body.head.x, body.head.y);
 
      println( body.head.x + " " + body.head.y);
   }

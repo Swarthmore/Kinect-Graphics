@@ -91,7 +91,7 @@ class Pendulum  {
     if (dragging) fill(0);
     // Draw the ball
     ellipse(loc.x,loc.y,ballr,ballr);
-    if(!dragging)  println("PE = "+mpe);
+    //if(!dragging)  println("PE = "+mpe);
      
  
   }

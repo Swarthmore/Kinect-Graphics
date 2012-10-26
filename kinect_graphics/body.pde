@@ -13,12 +13,17 @@ class Body  {
   PVector torso;
   PVector left_shoulder;
   PVector right_shoulder;
+  PVector left_elbow;
+  PVector right_elbow;
   PVector left_hand;
   PVector right_hand;
-  PVector left_thigh;
-  PVector right_thigh;
+  PVector left_knee;
+  PVector right_knee;
   PVector left_foot;
   PVector right_foot;
+  PVector left_hip;
+  PVector right_hip;
+  PVector neck;
 
 
   
@@ -27,7 +32,22 @@ Body() {
 
     leftHand = new PVector(0,0);
     rightHand = new PVector(0,0);
-  }
+    head = new PVector(0,0);
+    torso = new PVector(0,0);
+    left_shoulder = new PVector(0,0);
+    right_shoulder = new PVector(0,0);
+    left_elbow = new PVector(0,0);
+    right_elbow = new PVector(0,0);
+    left_hand = new PVector(0,0);
+    right_hand = new PVector(0,0);
+    left_hip = new PVector(0,0);
+    right_hip = new PVector(0,0);
+    left_knee = new PVector(0,0);
+    right_knee = new PVector(0,0);
+    left_foot = new PVector(0,0);
+    right_foot = new PVector(0,0);   
+    neck = new PVector(0,0); 
+}
  
  
  void update()
@@ -105,29 +125,83 @@ Body() {
         
          // Left shoulder
         PVector left_shoulder_raw = new PVector();
-        kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_TORSO, left_shoulder_raw);
+        kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_LEFT_SHOULDER, left_shoulder_raw);
         kinect.convertRealWorldToProjective(left_shoulder_raw, left_shoulder);       
         left_shoulder.mult(2);
   
         // Right shoulder
         PVector right_shoulder_raw = new PVector();
-        kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_TORSO, right_shoulder_raw);
+        kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_RIGHT_SHOULDER, right_shoulder_raw);
         kinect.convertRealWorldToProjective(right_shoulder_raw, right_shoulder);       
         right_shoulder.mult(2);      
  
          // Left hand
         PVector left_hand_raw = new PVector();
-        kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_TORSO, left_hand_raw);
+        kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_LEFT_HAND, left_hand_raw);
         kinect.convertRealWorldToProjective(left_hand_raw, left_hand);       
         left_hand.mult(2);       
         
-          // Right shoulder
+          // Right hand
         PVector right_hand_raw = new PVector();
-        kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_TORSO, right_hand_raw);
+        kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_RIGHT_HAND, right_hand_raw);
         kinect.convertRealWorldToProjective(right_hand_raw, right_hand);       
         right_hand.mult(2);
         
+        // Left elbow
+        PVector left_elbow_raw = new PVector();
+        kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_LEFT_ELBOW, left_elbow_raw);
+        kinect.convertRealWorldToProjective(left_elbow_raw, left_elbow);       
+        left_elbow.mult(2);           
         
+        // Right elbow
+        PVector right_elbow_raw = new PVector();
+        kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_RIGHT_ELBOW, right_elbow_raw);
+        kinect.convertRealWorldToProjective(right_elbow_raw, right_elbow);       
+        right_elbow.mult(2);      
+
+
+        // Left hip
+        PVector left_hip_raw = new PVector();
+        kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_LEFT_HIP, left_hip_raw);
+        kinect.convertRealWorldToProjective(left_hip_raw, left_hip);       
+        left_hip.mult(2);    
+        
+        
+        // Right hip
+        PVector right_hip_raw = new PVector();
+        kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_RIGHT_HIP, right_hip_raw);
+        kinect.convertRealWorldToProjective(right_hip_raw, right_hip);       
+        right_hip.mult(2);   
+ 
+        // Left knee
+        PVector left_knee_raw = new PVector();
+        kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_LEFT_KNEE, left_knee_raw);
+        kinect.convertRealWorldToProjective(left_knee_raw, left_knee);       
+        left_knee.mult(2);     
+        
+        // Right knee
+        PVector right_knee_raw = new PVector();
+        kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_RIGHT_KNEE, right_knee_raw);
+        kinect.convertRealWorldToProjective(right_knee_raw, right_knee);       
+        right_knee.mult(2);  
+ 
+         // Left foot
+        PVector left_foot_raw = new PVector();
+        kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_LEFT_FOOT, left_foot_raw);
+        kinect.convertRealWorldToProjective(left_foot_raw, left_foot);       
+        left_foot.mult(2);       
+        
+        // Right foot
+        PVector right_foot_raw = new PVector();
+        kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_RIGHT_FOOT, right_foot_raw);
+        kinect.convertRealWorldToProjective(right_foot_raw, right_foot);       
+        right_foot.mult(2);  
+
+        // Neck
+        PVector neck_raw = new PVector();
+        kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_NECK, neck_raw);
+        kinect.convertRealWorldToProjective(neck_raw, neck);       
+        neck.mult(2);  
         
         dataValid = true;
         
