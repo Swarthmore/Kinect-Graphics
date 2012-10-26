@@ -21,8 +21,16 @@ boolean wasInEffectBox = false;
 // Mode 2 info
 PImage key_blur;
 PShape s;
-
+boolean key1_was_active = false;
+boolean key2_was_active = false;
+boolean key3_was_active = false;
+boolean key4_was_active = false;
+boolean key5_was_active = false;
+  
+  
+  
 // Mode 3 info
+PImage mode3_background;
 PShape astro_head;
 PShape astro_torso;
 PShape astro_left_shoulder;
@@ -54,7 +62,7 @@ PFont font;
 float effect_button_size;
 float mode_button_size;
 int time_entered_mode_button;
-int mode = 2;
+int mode = 0;
 int number_of_modes = 3;
 boolean isInModeButton = false;
 boolean wasInModeButton = false;
@@ -142,7 +150,9 @@ void setup() {
   
   // Stuff for Mode 3 (pendulum)
   p = new Pendulum(new PVector(width/2, 0), pend_arm); // Make a new Pendulum with an origin location and armlength
-
+  mode3_background = loadImage("earthrise.jpg");
+  
+  
   // Fonts
   font = loadFont("OCRAStd-48.vlw");
   textFont(font);
@@ -250,6 +260,10 @@ void draw() {
       if (mode >= number_of_modes) {
         mode = 0;
       }
+      
+      // Turn on any sounds
+      output.sendNoteOn(0, 1, 1); 
+      
       mode_switched = true;
     }
   } 
@@ -303,10 +317,16 @@ void draw() {
 void draw_mode1() {
   
      // Skeleton control
-     
+  PImage mask;
+  
   if (kinect_enabled) {
      //body.draw_pointCloud();
-     image(body.depth, 0, 0, 1280, 960);
+     
+     // Get the depth data and use as a mask -- filter out everything more than 128
+     body.depth.filter(THRESHOLD, 0.7);
+     body.rgbImage.mask(body.depth);
+     
+     image(body.rgbImage, 0, 0, 1280, 960);
   }
      
     // Cicles on hands
@@ -314,32 +334,49 @@ void draw_mode1() {
     ellipse(body.leftHand.x, body.leftHand.y, 20, 20);
     fill(0,0,255);
     ellipse(body.rightHand.x, body.rightHand.y, 20, 20);
-    
+    float angle  = body.angle_between_hands();
+ 
     // Sine wave between hands
     pushMatrix();
-    strokeWeight(3);
+    strokeWeight(6);
     stroke(223, 0, 255);
-    translate(body.rightHand.x, body.rightHand.y);
-    rotate(radians(body.angle_between_hands()));
-    for (float x=0; x<body.distance_between_hands(); x=x+3)
+    translate(body.leftHand.x, body.leftHand.y);
+    rotate(radians(angle));
+    
+    float last_x = 0;
+    float last_y1 = 0;
+    float last_y2 = 0;
+    float y1 = 0;
+    float y2;
+    for (float x=0; x<body.distance_between_hands(); x=x+6)
     {
-      point(x, 50*sin(sine_phase + 12 * PI* x /  body.distance_between_hands()));
-      point(x, -50*sin(sine_phase + 12 * PI* x /  body.distance_between_hands()));
+      y1 = 50*sin(sine_phase + 12 * PI* x /  body.distance_between_hands());
+      y2 = -50*sin(sine_phase + 12 * PI* x /  body.distance_between_hands());
+      line(x, y1, last_x, last_y1);
+      line(x, y2, last_x, last_y2);
+      
+      last_x = x;
+      last_y1 = y1;
+      last_y2 = y2;
       
     }
     popMatrix();
     
-    sine_phase += 2;
+    sine_phase += 1.5;
     
     // Data to display
     textAlign(LEFT, TOP); 
     textFont(font, 16);
     fill(0, 255, 0);
-    text("Size: " + body.distance_between_hands() + "\nAngle: " + body.angle_between_hands(), 10, 10);   
+    text("Size: " + body.distance_between_hands() + "\nAngle: " + angle, 10, 10);   
   
     // MIDI output
     int hands_dist = min(int(map(body.distance_between_hands(), 0, 1000, 0, 127)), 127); 
-    output.sendController(1, 1, hands_dist);    
+    output.sendController(9, 1, hands_dist);  
+ 
+   int hands_angle = min(int(map(max(angle,0), 0, 360, 0, 127)), 127); 
+    output.sendController(10, 1, hands_dist);   
+      
 
 }
 
@@ -359,10 +396,14 @@ void draw_mode2()
 
  // If kinect is active, draw 3D image
   if (kinect_enabled) {
-     //body.draw_pointCloud();
-     image(body.depth, 0, 0, 1280, 960);
-  }
-
+    
+    if ((body.userList.size() <= 0) || !kinect.isTrackingSkeleton(body.userId)){   
+       // Draw RGB image until calibrated
+       image(body.rgbImage, 0,0,1280,960); 
+    } else {
+     //background 
+      background(0);
+  
   
   // Draw keys and blurred background
   //image(key_blur, -10, -40, 1300, 750);  // Blurred keys background
@@ -380,18 +421,40 @@ void draw_mode2()
   textFont(font, 16);
   text("X: " + body.rightHand.x + "\nY: " + body.rightHand.y, 10, 10);   
   
+   // Draw Skeleton
+    strokeWeight(2);
+    stroke(255,0,0);
+    line(body.left_hand.x, body.left_hand.y, body.left_elbow.x, body.left_elbow.y);
+    line(body.left_elbow.x, body.left_elbow.y, body.left_shoulder.x, body.left_shoulder.y);
+    line(body.left_shoulder.x, body.left_shoulder.y, body.left_hip.x, body.left_hip.y);
+    line(body.left_hip.x, body.left_hip.y, body.left_knee.x, body.left_knee.y);
+    line(body.left_knee.x, body.left_knee.y, body.left_foot.x, body.left_foot.y);
+    
+    line(body.right_hand.x, body.right_hand.y, body.right_elbow.x, body.right_elbow.y);
+    line(body.right_elbow.x, body.right_elbow.y, body.right_shoulder.x, body.right_shoulder.y);
+    line(body.right_shoulder.x, body.right_shoulder.y, body.right_hip.x, body.right_hip.y);
+    line(body.right_hip.x, body.right_hip.y, body.right_knee.x, body.right_knee.y);
+    line(body.right_knee.x, body.right_knee.y, body.right_foot.x, body.right_foot.y);
+    
+    line(body.left_hip.x, body.left_hip.y, body.right_hip.x, body.right_hip.y);
+    line(body.left_shoulder.x, body.left_shoulder.y,body.right_shoulder.x, body.right_shoulder.y);
+    line(body.right_shoulder.x, body.right_shoulder.y, body.torso.x, body.torso.y);
+    line(body.left_shoulder.x, body.left_shoulder.y, body.torso.x, body.torso.y);
+    line(body.right_hip.x, body.right_hip.y, body.torso.x, body.torso.y);
+    line(body.left_hip.x, body.left_hip.y, body.torso.x, body.torso.y);
+    line(body.neck.x, body.neck.y, body.head.x, body.head.y);
  
-  
+ 
+   // Left ahnd
      // First make sure mouse is in top half of screen, then check to see if it overlaps with a key
-   if (  (body.rightHand.y <=651) && (pow(((body.rightHand.x-640))/(595), 2) + pow((body.rightHand.y-651)/(616),2) <= 1) && (pow((body.rightHand.x-640)/(465), 2) + pow((body.rightHand.y-651)/(484),2) >= 1))
+   if (  (body.leftHand.y <=651) && (pow(((body.leftHand.x-640))/(595), 2) + pow((body.leftHand.y-651)/(616),2) <= 1) && (pow((body.leftHand.x-640)/(465), 2) + pow((body.leftHand.y-651)/(484),2) >= 1))
   { 
     PVector v1 = new PVector(10 , 0);
-    PVector v2 = new PVector(body.rightHand.x-640, body.rightHand.y-651); 
+    PVector v2 = new PVector(body.leftHand.x-640, body.leftHand.y-651); 
     float a = degrees(PI - PVector.angleBetween(v2, v1));
      
     if (a > 0 && a < 35) {
       key1_active=true;
-      output.sendNoteOn(2, 1, 1);
       println("Key 1 active");
     } else if (a>35 && a < 70)
     {  key2_active=true;
@@ -407,25 +470,88 @@ void draw_mode2()
        println("Key 5 active");
     } 
   }
+ 
+ 
+   // Right hand
+     // First make sure mouse is in top half of screen, then check to see if it overlaps with a key
+   if (  (body.rightHand.y <=651) && (pow(((body.rightHand.x-640))/(595), 2) + pow((body.rightHand.y-651)/(616),2) <= 1) && (pow((body.rightHand.x-640)/(465), 2) + pow((body.rightHand.y-651)/(484),2) >= 1))
+  { 
+    PVector v1 = new PVector(10 , 0);
+    PVector v2 = new PVector(body.rightHand.x-640, body.rightHand.y-651); 
+    float a = degrees(PI - PVector.angleBetween(v2, v1));
+     
+    if (a > 0 && a < 35) {
+      key1_active=true;
+      println("Key 1 active");
+    } else if (a>35 && a < 70)
+    {  key2_active=true;
+       println("Key 2 active");
+    } else if(a>70 && a < 105)
+    {  key3_active=true;
+       println("Key 3 active");
+    } else if (a>105 && a < 140)
+    {  key4_active=true;
+       println("Key 4 active");
+    } else if (a>145 && a < 180)
+    {  key5_active=true;
+       println("Key 5 active");
+    } 
+  }
+ 
+   // Now check to see if we should send a note
+   if (key1_active && !key1_was_active) {
+      output.sendNoteOn(2, 1, 1); 
+      println("Send note on: 2, 1, 1");
+   } else if (!key1_active && key1_was_active) {
+     output.sendNoteOff(2, 1, 1);
+   } else if (key2_active && !key2_was_active) {
+      output.sendNoteOn(2, 2, 1); 
+   } else if (!key2_active && key2_was_active) {
+     output.sendNoteOff(2, 2, 1);
+   } else if (key3_active && !key3_was_active) {
+      output.sendNoteOn(2, 3, 1); 
+   } else if (!key3_active && key3_was_active) {
+     output.sendNoteOff(2, 3, 1);
+   }else if (key4_active && !key4_was_active) {
+      output.sendNoteOn(2, 4, 1); 
+   } else if (!key4_active && key4_was_active) {
+     output.sendNoteOff(2, 4, 1);
+   } else if (key5_active && !key5_was_active) {
+      output.sendNoteOn(2, 5, 1); 
+   } else if (!key5_active && key5_was_active) {
+     output.sendNoteOff(2, 5, 1);
+   }
+
+  key1_was_active = key1_active;
+  key2_was_active = key2_active;
+  key3_was_active = key3_active;
+  key4_was_active = key4_active;
+  key5_was_active = key5_active;
+ 
     
 }
 
-
-
+  }
+}
 
 void draw_mode3() {
   
      // Skeleton control
-  if (kinect_enabled && (body.userList.size() > 0) && kinect.isTrackingSkeleton(body.userId)){   
-     image(body.depth, 0,0,1280,960); 
+     
+     
+  if (kinect_enabled) {
+    
+    if ((body.userList.size() <= 0) || !kinect.isTrackingSkeleton(body.userId)){   
+       // Draw RGB image until calibrated
+       image(body.rgbImage, 0,0,1280,960); 
+    } else {
+     //background 
+     image(mode3_background,0 ,0, 1280,960);
        
      shapeMode(CENTER);
-     
-     
-
 
      pushMatrix();
-       float torso_scaling = 2*sqrt(pow(body.neck.y - body.right_hip.y, 2)) / astro_torso.height;
+       float torso_scaling = 1.7*sqrt(pow(body.neck.y - body.right_hip.y, 2)) / astro_torso.height;
        translate( body.torso.x, body.torso.y);
        scale(torso_scaling);
        shape(astro_torso, 0,0);
@@ -449,54 +575,7 @@ void draw_mode3() {
        shape(astro_head, 0,0);
       popMatrix();
   
-     // Left shoulder
-     pushMatrix();
-       float left_shoulder_scaling = 2*sqrt(pow(body.left_shoulder.x - body.left_elbow.x, 2) + pow(body.left_shoulder.y - body.left_elbow.y, 2)) / sqrt(pow(astro_left_shoulder.height,2) + pow(astro_left_shoulder.width,2));
-       float ls_angle = degrees(atan((body.left_shoulder.y - body.left_elbow.y)/(body.left_shoulder.x - body.left_elbow.x))) + 75;        
-       textAlign(LEFT, TOP); 
-       textFont(font, 16);
-       text("Shoulder angle: " + ls_angle, 10, 10);    
-       translate( (body.left_shoulder.x + body.left_elbow.x)/2 , (body.left_shoulder.y + body.left_elbow.y)/2 );
-       scale(left_shoulder_scaling);        
-       rotate(radians(ls_angle));
-       shape(astro_left_shoulder, 0,0);
-     popMatrix();
-   
 
-     // Right shoulder
-     pushMatrix();
-       float right_shoulder_scaling = 2*sqrt(pow(body.right_shoulder.x - body.right_elbow.x, 2) + pow(body.right_shoulder.y - body.right_elbow.y, 2)) / sqrt(pow(astro_right_shoulder.height,2) + pow(astro_right_shoulder.width,2));
-       float rs_angle = degrees(atan((body.right_shoulder.y - body.right_elbow.y)/(body.right_shoulder.x - body.right_elbow.x))) - 75;        
-       translate( (body.right_shoulder.x + body.right_elbow.x)/2 , (body.right_shoulder.y + body.right_elbow.y)/2 );
-       scale(right_shoulder_scaling);        
-       rotate(radians(rs_angle));
-       shape(astro_right_shoulder, 0,0);
-     popMatrix();
-   
-   
-   
-   
-    // Left hand
-    pushMatrix();
-       float left_hand_scaling = 2*sqrt(pow(body.left_hand.x - body.left_elbow.x, 2) + pow(body.left_hand.y - body.left_elbow.y, 2)) / sqrt(pow(astro_left_hand.height,2) + pow(astro_left_hand.width,2)) ;
-       angle = 60 + degrees(atan((body.left_hand.y - body.left_elbow.y)/(body.left_hand.x - body.left_elbow.x)));        
-       translate( (body.left_hand.x + body.left_elbow.x)/2 , (body.left_hand.y + body.left_elbow.y)/2 );
-       scale(left_hand_scaling);      
-       rotate(radians(angle));
-       shape(astro_left_hand, 10, 0);
-     popMatrix();
-  
-  
-    // Right hand
-    pushMatrix();
-       float right_hand_scaling = 2*sqrt(pow(body.right_hand.x - body.right_elbow.x, 2) + pow(body.right_hand.y - body.right_elbow.y, 2)) / sqrt(pow(astro_right_hand.height,2) + pow(astro_right_hand.width,2)) ;
-       angle = -60 + degrees(atan((body.right_hand.y - body.right_elbow.y)/(body.right_hand.x - body.right_elbow.x)));
-       text("Right Hand angle: " + angle, 10, 40);    
-       translate( (body.right_hand.x + body.right_elbow.x)/2 , (body.right_hand.y + body.right_elbow.y)/2 );
-       scale(right_hand_scaling);      
-       rotate(radians(angle));
-       shape(astro_right_hand, -10, 0);
-     popMatrix();
      
   
     // Left thigh
@@ -505,17 +584,17 @@ void draw_mode3() {
        angle = -degrees(atan((body.left_hip.x - body.left_knee.x)/(body.left_hip.y - body.left_knee.y)));        
        translate( (body.left_hip.x + body.left_knee.x)/2 , (body.left_hip.y + body.left_knee.y)/2 );
        scale(left_thigh_scaling);      
-       rotate(radians(angle));
+       rotate(radians(angle-10));
        shape(astro_left_thigh, 0, 0);
      popMatrix();
      
     // right thigh
     pushMatrix();
-       float right_thigh_scaling = 1.5*sqrt(pow(body.right_hip.x - body.right_knee.x, 2) + pow(body.right_hip.y - body.right_knee.y, 2)) / sqrt(pow(astro_right_thigh.height,2) + pow(astro_right_thigh.width,2)) ;
+       float right_thigh_scaling = 1.2*sqrt(pow(body.right_hip.x - body.right_knee.x, 2) + pow(body.right_hip.y - body.right_knee.y, 2)) / sqrt(pow(astro_right_thigh.height,2) + pow(astro_right_thigh.width,2)) ;
        angle = -degrees(atan((body.right_hip.x - body.right_knee.x)/(body.right_hip.y - body.right_knee.y)));       
        translate( (body.right_hip.x + body.right_knee.x)/2 , (body.right_hip.y + body.right_knee.y)/2 );
        scale(right_thigh_scaling);      
-       rotate(radians(angle));
+       rotate(radians(angle+10));
        shape(astro_right_thigh, 0, 0);
      popMatrix();
 
@@ -523,7 +602,7 @@ void draw_mode3() {
     // Left foot
     pushMatrix();
        float left_foot_scaling = 2*sqrt(pow(body.left_knee.x - body.left_foot.x, 2) + pow(body.left_knee.y - body.left_foot.y, 2)) / sqrt(pow(astro_left_foot.height,2) + pow(astro_left_foot.width,2)) ;
-       angle = -degrees(atan((body.left_knee.x - body.left_foot.x)/(body.left_knee.y - body.left_foot.y)))-10;        
+       angle = -degrees(atan((body.left_knee.x - body.left_foot.x)/(body.left_knee.y - body.left_foot.y)))-5;        
        translate( (body.left_knee.x + body.left_foot.x)/2 , (body.left_knee.y + body.left_foot.y)/2 );
        scale(left_foot_scaling);      
        rotate(radians(angle));
@@ -532,14 +611,65 @@ void draw_mode3() {
 
     // right foot
     pushMatrix();
-       float right_foot_scaling = 2*sqrt(pow(body.right_knee.x - body.right_foot.x, 2) + pow(body.right_knee.y - body.right_foot.y, 2)) / sqrt(pow(astro_right_foot.height,2) + pow(astro_right_foot.width,2)) ;
-       angle = -degrees(atan((body.right_knee.x - body.right_foot.x)/(body.right_knee.y - body.right_foot.y)))+10;      
+       float right_foot_scaling = 1.7*sqrt(pow(body.right_knee.x - body.right_foot.x, 2) + pow(body.right_knee.y - body.right_foot.y, 2)) / sqrt(pow(astro_right_foot.height,2) + pow(astro_right_foot.width,2)) ;
+       angle = -degrees(atan((body.right_knee.x - body.right_foot.x)/(body.right_knee.y - body.right_foot.y)))+5 ;    
        translate( (body.right_knee.x + body.right_foot.x)/2 , (body.right_knee.y + body.right_foot.y)/2 );
        scale(right_foot_scaling);      
        rotate(radians(angle));
        shape(astro_right_foot, 0, 0);
      popMatrix();
 
+     // Left shoulder
+     pushMatrix();
+       float left_shoulder_scaling = 1.8*sqrt(pow(body.left_shoulder.x - body.left_elbow.x, 2) + pow(body.left_shoulder.y - body.left_elbow.y, 2)) / sqrt(pow(astro_left_shoulder.height,2) + pow(astro_left_shoulder.width,2));
+       angle = degrees(atan((body.left_shoulder.y - body.left_elbow.y)/(body.left_shoulder.x - body.left_elbow.x)));      
+       if (body.left_elbow.x > body.left_shoulder.x) {angle = angle - 180;} // To account for atan      
+       translate( (body.left_shoulder.x + body.left_elbow.x)/2 , (body.left_shoulder.y + body.left_elbow.y)/2 );
+       scale(left_shoulder_scaling);        
+       rotate(radians(angle+80));
+       shape(astro_left_shoulder, 0,0);
+     popMatrix();
+   
+
+     // Right shoulder
+     pushMatrix();
+       float right_shoulder_scaling = 1.8*sqrt(pow(body.right_shoulder.x - body.right_elbow.x, 2) + pow(body.right_shoulder.y - body.right_elbow.y, 2)) / sqrt(pow(astro_right_shoulder.height,2) + pow(astro_right_shoulder.width,2));
+       angle = degrees(atan((body.right_shoulder.y - body.right_elbow.y)/(body.right_shoulder.x - body.right_elbow.x))); 
+       if (body.right_elbow.x < body.right_shoulder.x) {angle = angle - 180;} // To account for atan       
+       translate( (body.right_shoulder.x + body.right_elbow.x)/2 , (body.right_shoulder.y + body.right_elbow.y)/2 );
+       scale(right_shoulder_scaling);        
+       rotate(radians(angle-80));
+       shape(astro_right_shoulder, 0,0);
+     popMatrix();
+   
+   
+   
+   
+    // Left hand
+    pushMatrix();
+       float left_hand_scaling = 1.8*sqrt(pow(body.left_hand.x - body.left_elbow.x, 2) + pow(body.left_hand.y - body.left_elbow.y, 2)) / sqrt(pow(astro_left_hand.height,2) + pow(astro_left_hand.width,2)) ;
+       angle = degrees(atan((body.left_hand.y - body.left_elbow.y)/(body.left_hand.x - body.left_elbow.x)));   
+       if (body.left_elbow.x < body.left_hand.x) {angle = angle - 180;} // To account for atan
+       translate( (body.left_hand.x + body.left_elbow.x)/2 , (body.left_hand.y + body.left_elbow.y)/2 );
+       scale(left_hand_scaling);      
+       rotate(radians(angle+60)); // To account for the angle of the svg
+       shape(astro_left_hand, 0, 0);
+     popMatrix();
+  
+  
+    // Right hand
+    pushMatrix();
+       float right_hand_scaling = 1.8*sqrt(pow(body.right_hand.x - body.right_elbow.x, 2) + pow(body.right_hand.y - body.right_elbow.y, 2)) / sqrt(pow(astro_right_hand.height,2) + pow(astro_right_hand.width,2)) ;
+       angle = -60 + degrees(atan((body.right_hand.y - body.right_elbow.y)/(body.right_hand.x - body.right_elbow.x)));
+       if (body.right_elbow.x > body.right_hand.x) {angle = angle - 180;} // To account for atan
+       text("Right Hand angle: " + angle, 10, 40);    
+       translate( (body.right_hand.x + body.right_elbow.x)/2 , (body.right_hand.y + body.right_elbow.y)/2 );
+       scale(right_hand_scaling);      
+       rotate(radians(angle));
+       shape(astro_right_hand, 0, 0);
+     popMatrix();
+
+  /*
     strokeWeight(1);
     stroke(255,0,0);
     line(body.left_hand.x, body.left_hand.y, body.left_elbow.x, body.left_elbow.y);
@@ -563,9 +693,10 @@ void draw_mode3() {
     line(body.neck.x, body.neck.y, body.head.x, body.head.y);
 
      //println( body.head.x + " " + body.head.y);
+     */
   }
         
-  
+  }  
   
 }
 

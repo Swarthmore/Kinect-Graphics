@@ -72,9 +72,6 @@ Body() {
     depth = kinect.depthImage();
     rgbImage = kinect.rgbImage();
     
-    //image(depth, 0, 0);
-    ArrayList kinect_data = new ArrayList();
-    kinect_data.add(false); // First element is whether the data is present (assume false for now)
   
     // make a vector of ints to store the list of users
     userList = new IntVector();
@@ -84,15 +81,21 @@ Body() {
 
     // if we found any users
     if (userList.size() > 0) {
-      // get the first user
-      userId = userList.get(0);
+    
+      // Loop through all possible users looking for a tracked skeleton
+      for (int i=0; i<userList.size(); i++)
+      {
+        userId = userList.get(i);
+        if (kinect.isTrackingSkeleton(userId)) {
+           break;  // Break out when found a tracked person
+        }
+      }
     
       // if we're successfully calibrated
       if ( kinect.isTrackingSkeleton(userId)) {
       
         //println("Tracking skeleton");
-        kinect_data.set(0, true); // First element is whether the data is present
-      
+     
         // make a vector to store the left hand
         leftHand = new PVector();
         // put the position of the left hand into that vector
@@ -227,19 +230,22 @@ float distance_between_hands() {
 }
 
 float angle_between_hands() {
+   /*
     PVector hand_to_hand = new PVector(leftHand.x, leftHand.y);
     hand_to_hand.sub(rightHand);
     hand_to_hand.normalize();
-    PVector handOrientation = new PVector(1,0,0);
+    PVector handOrientation = new PVector(0,1,0);
     float angle = degrees(acos(handOrientation.dot(hand_to_hand)));
+    */
+    float angle = degrees(atan((leftHand.y - rightHand.y)/(leftHand.x - rightHand.x)));
     
-    if (leftHand.y < rightHand.y)
+    if (rightHand.x < leftHand.x)
     {
-       angle = -angle; 
+       angle =angle-180; 
     }
     
     //println("Angle: " + angle);  
-    return angle; 
+    return angle;
 }
 
 

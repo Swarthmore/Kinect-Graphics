@@ -29,25 +29,25 @@ void draw() {
 
   background(0);
   shape(s,40,-5,1200,622);
-  //filter(BLUR,6);
 
-  shape(topkey,20,0,600,311);
-  shape(topleftkey,20,0,600,311);
-  shape(bottomleftkey,20,0,600,311);
-  shape(toprightkey,20,0,600,311);
-  shape(bottomrightkey,20,0,600,311);
-
-if (  (pow(float((mouseX-640))/(595), 2) + pow(float(mouseY-651)/(616),2) <= 1) && (pow(float(mouseX-640)/(465), 2) + pow(float(mouseY-651)/(484),2) >= 1))
+if (  (mouseY <=651) && (pow(float((mouseX-640))/(595), 2) + pow(float(mouseY-651)/(616),2) <= 1) && (pow(float(mouseX-640)/(465), 2) + pow(float(mouseY-651)/(484),2) >= 1))
   { 
     PVector v1 = new PVector(10 , 0);
-    PVector v2 = new PVector(mouseX, mouseY); 
-    float a = PVector.angleBetween(v1, v2);
-    println(degrees(a));  // Prints "10.304827"
+    PVector v2 = new PVector(mouseX-640, mouseY-651); 
+    float a = degrees(PI - PVector.angleBetween(v2, v1));
+    println(a);  // Prints "10.304827"
     
-    
-    //println(mouseX + " " +mouseY);
-  } else {
-
+    if (a > 0 && a < 35) {
+      println("Key 1");
+    } else if (a>35 && a < 70)
+    { println("Key 2");
+    } else if(a>70 && a < 105)
+    { println("Key 3");
+    } else if (a>105 && a < 140)
+    { println("Key 4");
+    } else if (a>145 && a < 180)
+    { println("Key 5");
+    } 
   }
 }
 
