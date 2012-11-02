@@ -1,3 +1,12 @@
+/*
+Program to demonstrate gesture-based computing using a Microsoft Kinect
+Created by Michael Kappeler and Andrew Ruether
+Swarthmore College
+October 2012
+*/
+
+
+
 import SimpleOpenNI.*;
 SimpleOpenNI  kinect;
 
