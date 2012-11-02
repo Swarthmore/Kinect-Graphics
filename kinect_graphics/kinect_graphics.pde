@@ -402,7 +402,7 @@ void draw() {
         mode = 0;
       }
       
-      // Turn on any sounds
+      // Turn off any sounds
       output.sendNoteOn(0, 1, 1); 
       
       // If entering mode 0, turn on sounds
@@ -1011,4 +1011,13 @@ ArrayList kinect_draw()
 return kinect_data;
     
 }
+
+
+
+// Stop function
+void stop() {
+  // Turn off any sounds before quitting
+  output.sendNoteOn(0, 1, 1); 
+  super.stop();
+} 
 
